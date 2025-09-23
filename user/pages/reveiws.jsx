@@ -16,7 +16,7 @@ const Reveiws = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post(`http://localhost:4000/reveiw/${productId}/${userId}`, {
+            const response = await axios.post(`https://ecommerce-web-e9sm.onrender.com/reveiw/${productId}/${userId}`, {
                 selectedRating,
                 reviewText,
                 interestingText

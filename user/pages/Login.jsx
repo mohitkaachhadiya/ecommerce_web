@@ -36,7 +36,7 @@ export const Login = () => {
                 return;
             }
             if (state === "signup") {
-                const { data } = await axios.post('http://localhost:4000/register', { name, email, password })
+                const { data } = await axios.post('https://ecommerce-web-e9sm.onrender.com/register', { name, email, password })
                 if (data.success) {
                     toast.success(data.message)
                     setname('')
@@ -48,7 +48,7 @@ export const Login = () => {
                 }
             }
             else {
-                const { data } = await axios.post('http://localhost:4000/login', { email, password });
+                const { data } = await axios.post('https://ecommerce-web-e9sm.onrender.com/login', { email, password });
                 if (data.success) {
                     toast.success(data.message);
                     const user = data.user;

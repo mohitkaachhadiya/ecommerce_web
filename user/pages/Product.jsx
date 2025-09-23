@@ -24,7 +24,7 @@ const ProductDetails = () => {
 
     const getProductDetails = async () => {
         try {
-            const { data } = await axios.get(`http://localhost:4000/product/${id}`);
+            const { data } = await axios.get(`https://ecommerce-web-e9sm.onrender.com/product/${id}`);
             if (data.success) {
                 setProduct(data.product);
             } else {
@@ -47,7 +47,7 @@ const ProductDetails = () => {
         const id = user._id
      
         try {
-            const { data } = await axios.post(`http://localhost:4000/home/addtocart/${id}`, { productId, quantity:count})
+            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/home/addtocart/${id}`, { productId, quantity:count})
             if (data.success) {
                 toast.success(data.message);
                 openCart();

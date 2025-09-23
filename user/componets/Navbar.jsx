@@ -10,7 +10,7 @@ const Navbar = ({ scrollToAbout, scrollToContact }) => {
     const navigate = useNavigate();
     const { user, setuser, openCart, cartItems, setSearchdata, setSearchText, searchText } = useContext(Appcontex)
     const handleLogout = async () => {
-        const log = await axios.post('http://localhost:4000/logout')
+        const log = await axios.post('https://ecommerce-web-e9sm.onrender.com/logout')
         setuser(null);
         localStorage.removeItem('user');
         navigate('/')
@@ -19,7 +19,7 @@ const Navbar = ({ scrollToAbout, scrollToContact }) => {
         const value = e.target.value
         try {
             setSearchText(value);
-            const response = await axios.post('http://localhost:4000/search', { Searchvalue: value })
+            const response = await axios.post('https://ecommerce-web-e9sm.onrender.com/search', { Searchvalue: value })
             setSearchdata(response.data.products);
         } catch (error) {
             setSearchdata([]);

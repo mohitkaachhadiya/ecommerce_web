@@ -27,7 +27,7 @@ const AddProduct = () => {
 
     const getProductDetails = async () => {
         try {
-            const { data } = await axios.get(`http://localhost:4000/product/${id}`);
+            const { data } = await axios.get(`https://ecommerce-web-e9sm.onrender.com/product/${id}`);
             if (data.success) {
                 setProduct(data.product);
             } else {
@@ -53,7 +53,7 @@ const AddProduct = () => {
         axios.defaults.withCredentials = true
         try {
             if (state === "add") {
-                const { data } = await axios.post('http://localhost:4000/add', { proImg, proName, proPrice,proColor })
+                const { data } = await axios.post('https://ecommerce-web-e9sm.onrender.com/add', { proImg, proName, proPrice,proColor })
 
                 if (data.success) {
                     toast.success(data.message)
@@ -69,7 +69,7 @@ const AddProduct = () => {
             }
             else {
 
-                const { data } = await axios.post(`http://localhost:4000/update/${id}`, { proImg, proName, proPrice,proColor });
+                const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/update/${id}`, { proImg, proName, proPrice,proColor });
                 if (data.success) {
                     setProduct(data.product);
                     setproImg(data.product.proImg);

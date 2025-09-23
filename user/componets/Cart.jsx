@@ -11,7 +11,7 @@ const Cart = () => {
     const incrQty = async (cid) => {
         const id = user._id
         try {
-            const { data } = await axios.post(`http://localhost:4000/incQty/${id}`, { cartItemId: cid })
+            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/incQty/${id}`, { cartItemId: cid })
             if (data.success) {
                 toast.success(data.message);
                 getCart();
@@ -29,7 +29,7 @@ const Cart = () => {
     const decrQty = async (cid) => {
         const id = user._id
         try {
-            const { data } = await axios.post(`http://localhost:4000/decQty/${id}`, { cartItemId: cid })
+            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/decQty/${id}`, { cartItemId: cid })
             if (data.success) {
                 toast.success(data.message);
                 getCart();
@@ -50,7 +50,7 @@ const Cart = () => {
     const deleteCartItem = async (pid) => {
         const id = user._id
         try {
-            const { data } = await axios.post(`http://localhost:4000/home/deletecartitem/${id}`, { cartItemId: pid })
+            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/home/deletecartitem/${id}`, { cartItemId: pid })
             if (data.success) {
                 toast.success(data.message);
                 getCart();

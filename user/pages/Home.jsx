@@ -51,7 +51,7 @@ export const Home = () => {
 
     const handeleDelete = async (id) => {
         try {
-            const { data } = await axios.post(`http://localhost:4000/delete/${id}`);
+            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/delete/${id}`);
             if (data.success) {
                 toast.success(data.message);
                 await getproducts();
@@ -66,7 +66,7 @@ export const Home = () => {
 
     const getproducts = async () => {
         try {
-            const { data } = await axios.post("http://localhost:4000/home/page", { page, limit })
+            const { data } = await axios.post("https://ecommerce-web-e9sm.onrender.com/home/page", { page, limit })
             if (data.success) {
                 toast.success(data.message)
                 setProducts(data.products);
@@ -112,7 +112,7 @@ export const Home = () => {
         const min = (typeof minprice === 'number' && !isNaN(minprice)) ? minprice : undefined;
         const max = (typeof maxprice === 'number' && !isNaN(maxprice)) ? maxprice : undefined;
         try {
-            const { data } = await axios.post('http://localhost:4000/home/filter', {
+            const { data } = await axios.post('https://ecommerce-web-e9sm.onrender.com/home/filter', {
                 colors: selectedColors,
                 minprice: min,
                 maxprice: max,
