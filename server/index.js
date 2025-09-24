@@ -10,7 +10,7 @@
     const app = express();
     app.use(express.json());
     app.use(cookieParser())
-    const allowedOrigins = ['http://localhost:5173',  'https://ecommerce-web-mu-six.vercel.app','https://ecommerce-web-15lx-git-main-mohits-projects-591f65b7.vercel.app',"https://ecommerce-web-e9sm.onrender.com"]
+    const allowedOrigins = ['http://localhost:5173',  'https://ecommerce-web-mu-six.vercel.app',"https://ecommerce-web-e9sm.onrender.com"]
 
     app.use(cors({origin:allowedOrigins, credentials: true }))
     

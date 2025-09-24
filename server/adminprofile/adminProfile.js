@@ -10,7 +10,7 @@ async function createAdmin() {
       const newAdmin = new usermodel({
         name: 'Admin User',
         email: 'admin@example.com',
-        password: '1234567_',  
+        password: 'Admin@123',  
         role: 'admin'
       });
       await newAdmin.save();
