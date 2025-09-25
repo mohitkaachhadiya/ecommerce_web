@@ -1,24 +1,36 @@
-    import express from "express";
-    import cors from "cors";
-    import dotenv from "dotenv";
-    import cookieParser from "cookie-parser";
-    import dbConection from './database/dbConection.js'
-    import router from "./router/useRouter.js";
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import dbConection from './database/dbConection.js'
+import router from "./router/useRouter.js";
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-    dotenv.config();
 
-    const app = express();
-    app.use(express.json());
-    app.use(cookieParser())
-    const allowedOrigins = ['http://localhost:5173',  'https://ecommerce-web-mu-six.vercel.app',"https://ecommerce-web-e9sm.onrender.com"]
+dotenv.config();
 
-    app.use(cors({origin:allowedOrigins, credentials: true }))
-    
-    const port = process.env.poort || 4000;
-    dbConection();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+console.log(__dirname)
 
-    app.get("/", (req, resp) => {
-        resp.send("server is running")
-    })
-    app.listen(port)
-    app.use(router)
+const app = express();
+app.use(express.json());
+app.use(cookieParser())
+const allowedOrigins = ['http://localhost:5173', 'https://ecommerce-web-mu-six.vercel.app', "https://ecommerce-web-e9sm.onrender.com"]
+
+app.use(cors({ origin: allowedOrigins, credentials: true }))
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
+
+const port = process.env.port || 4000;
+dbConection();
+
+app.get("/", (req, resp) => {
+    resp.send("server is running")
+})
+
+
+app.use(router)
+app.listen(port)

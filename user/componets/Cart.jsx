@@ -77,7 +77,7 @@ const Cart = () => {
                     cartItems.map((item, index) => (
                         <div key={index}  >
                             <div className="cart-item">
-                                <img className='cartimg' src={item.proImg} alt={item.proName} width="80" />
+                                <img className='cartimg' src={`https://ecommerce-web-e9sm.onrender.com${item.proImg}`} alt={item.proName} width="80" />
                                 <div>
                                     <p>{item.proName}</p>
                                     <p>${item.proPrice}</p>

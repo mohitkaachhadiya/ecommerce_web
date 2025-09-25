@@ -25,7 +25,6 @@ const Navbar = ({ scrollToAbout, scrollToContact }) => {
             setSearchdata([]);
         }
     }
-
     return (
         <>
             <div className='navbar'>
@@ -35,7 +34,7 @@ const Navbar = ({ scrollToAbout, scrollToContact }) => {
                 </div>
                 <div>
                     <ul>
-                        <li onClick={() => navigate('/home')} >shope</li>
+                        <li onClick={() => navigate('/home')} >Shope</li>
                         <li onClick={scrollToAbout} >About</li>
                         <li onClick={scrollToContact} >Contact</li>
                     </ul>

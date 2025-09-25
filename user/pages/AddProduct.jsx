@@ -13,6 +13,7 @@ const AddProduct = () => {
     const [proPrice, setproPrice] = useState('');
     const [proColor, setproColor] = useState('');
     const [product, setProduct] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
 
     const { id } = useParams();
 
@@ -48,12 +49,47 @@ const AddProduct = () => {
     }, [product]);
 
 
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        setImageFile(file);
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const { data } = await axios.post(
+                'https://ecommerce-web-e9sm.onrender.com/upload',
+                formData,
+                {
+                    withCredentials: true,
+                }
+            );
+          
+
+            if (data.imageUrl) {
+                setproImg(data.imageUrl); 
+                toast.success('Image uploaded successfully');
+            } else {
+                toast.error('Image upload failed');
+            }
+        } catch (error) {
+            toast.error('Image upload failed');
+        }
+    };
+
+
     const addorEditProduct = async (e) => {
         e.preventDefault();
+        if (!proImg) {
+            toast.error('Please upload an image first');
+            return;
+        }
         axios.defaults.withCredentials = true
         try {
             if (state === "add") {
-                const { data } = await axios.post('https://ecommerce-web-e9sm.onrender.com/add', { proImg, proName, proPrice,proColor })
+                const { data } = await axios.post('https://ecommerce-web-e9sm.onrender.com/add', { proImg, proName, proPrice, proColor })
 
                 if (data.success) {
                     toast.success(data.message)
@@ -69,7 +105,7 @@ const AddProduct = () => {
             }
             else {
 
-                const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/update/${id}`, { proImg, proName, proPrice,proColor });
+                const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/update/${id}`, { proImg, proName, proPrice, proColor });
                 if (data.success) {
                     setProduct(data.product);
                     setproImg(data.product.proImg);
@@ -101,12 +137,14 @@ const AddProduct = () => {
                 <p className="tagline">funky printed Bags</p>
                 <form className="login-form" onSubmit={addorEditProduct}  >
                     <input
-                        type="img"
+                        type="file"
+                        accept="image/*"
                         placeholder="img"
-                        value={proImg}
-                        onChange={e => setproImg(e.target.value)}
+                        onChange={handleFileChange}
                         required
                     />
+                    {proImg && <img src={proImg} alt="Preview" style={{ width: '150px' }} />}
+
                     <>
                         <input
                             type="text"
@@ -123,7 +161,7 @@ const AddProduct = () => {
                         onChange={e => setproPrice(e.target.value)}
                         required
                     />
-                     <input
+                    <input
                         type="text"
                         placeholder="Enter product color"
                         value={proColor}

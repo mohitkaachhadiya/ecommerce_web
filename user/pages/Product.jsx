@@ -71,7 +71,7 @@ const ProductDetails = () => {
             <Navbar />
             <div className='product-details'>
                 <div>
-                    <img className='pro-img' src={product.proImg} alt={product.proName} />
+                    <img className='pro-img' src={`https://ecommerce-web-e9sm.onrender.com${product.proImg}`} alt={product.proName} />
                 </div>
                 <div className='detail'>
                     <h2 className='product-info'>{product.proName}</h2>

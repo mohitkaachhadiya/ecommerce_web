@@ -12,9 +12,7 @@ import ClearSharpIcon from '@mui/icons-material/ClearSharp';
 
 export const Home = () => {
     const aboutRef = useRef(null);
-
     const contactRef = useRef(null);
-
     const navigate = useNavigate();
     const [showSidebar, setShowSidebar] = useState(false);
     const [products, setProducts] = useState([]);
@@ -31,8 +29,6 @@ export const Home = () => {
         aboutRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
     
-
-
     const scrollToContact = () => {
         contactRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -79,7 +75,6 @@ export const Home = () => {
             toast.error(error.response?.data?.message || "Something went wrong");
         }
     }
-
    useEffect(() => {
         getCart();
     }, []);
@@ -228,7 +223,7 @@ export const Home = () => {
                     paginatedSearchData.map((data, index) => (
                         <div className='product' key={index}>
                             <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/product/${data._id}`)} >
-                                <img className='img' src={data.proImg} alt={data.proName} />
+                                <img className='img' src={`https://ecommerce-web-e9sm.onrender.com${data.proImg}`} alt={data.proName} />
                                 <p>{data.proName}</p>
                                 <p>${data.proPrice}</p>
 
@@ -250,10 +245,12 @@ export const Home = () => {
                         <p>No matching products found.</p>
                     ) : (
                         products.map((product, index) => (
+                            
                             <div className='product' key={index}>
                                 <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/product/${product._id}`)} >
-                                    <img className='img' src={product.proImg} alt={product.proName} />
+                                    <img className='img' src={`https://ecommerce-web-e9sm.onrender.com${product.proImg}`} alt={product.proName} />
                                     <p>{product.proName}</p>
+                                    {console.log(product.proImg)}
                                     <p>${product.proPrice}</p>
                                 </div>
                                 <button onClick={async () => {

@@ -37,7 +37,7 @@ export const Appcontexprovider = (props) => {
     const addCart = async (pid) => {
         const id = user._id
         try {
-            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/home/addtocart/${id}`, { productId: pid })
+            const { data } = await axios.post(`http://localhost:4000/home/addtocart/${id}`, { productId: pid })
             if (data.success) {
                 openCart();
                 toast.success(data.message);
@@ -53,7 +53,7 @@ export const Appcontexprovider = (props) => {
     const getCart = async () => {
         const id = user._id
         try {
-            const { data } = await axios.get(`https://ecommerce-web-e9sm.onrender.com/home/getcart/${id}`)
+            const { data } = await axios.get(`http://localhost:4000/home/getcart/${id}`)
             if (data.success) {
                 toast.success(data.message);
                 data.cart.forEach(item => {
