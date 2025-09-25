@@ -17,7 +17,7 @@ console.log(__dirname)
 const app = express();
 app.use(express.json());
 app.use(cookieParser())
-const allowedOrigins = ['http://localhost:5173', 'https://ecommerce-web-mu-six.vercel.app', "https://ecommerce-web-e9sm.onrender.com"]
+const allowedOrigins = "https://ecommerce-web-e9sm.onrender.com"
 
 app.use(cors({ origin: allowedOrigins, credentials: true }))
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
