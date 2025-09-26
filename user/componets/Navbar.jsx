@@ -4,27 +4,51 @@ import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import { Appcontex } from '../context/Appcontext';
 import axios from 'axios';
+import { useEffect } from 'react';
 
 
 const Navbar = ({ scrollToAbout, scrollToContact }) => {
     const navigate = useNavigate();
-    const { user, setuser, openCart, cartItems, setSearchdata, setSearchText, searchText } = useContext(Appcontex)
+    const { user, setuser, openCart, cartItems, setSearchdata, setSearchText, searchText,Searchdata } = useContext(Appcontex)
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+
+
     const handleLogout = async () => {
         const log = await axios.post('https://ecommerce-web-e9sm.onrender.com/logout')
         setuser(null);
         localStorage.removeItem('user');
         navigate('/')
     }
-    const handleSearch = async (e) => {
-        const value = e.target.value
-        try {
-            setSearchText(value);
-            const response = await axios.post('https://ecommerce-web-e9sm.onrender.com/search', { Searchvalue: value })
-            setSearchdata(response.data.products);
-        } catch (error) {
-            setSearchdata([]);
+
+    useEffect(() => {
+        if (debouncedSearch.trim() === '') {
+            return setSearchdata([]);
         }
+        const fetchData = async () => {
+            try {
+                const response = await axios.post('https://ecommerce-web-e9sm.onrender.com/search', { Searchvalue: debouncedSearch });
+                console.log('API called with:', debouncedSearch);
+                setSearchdata(response.data.products);
+            } catch (error) {
+            }
+        };
+
+        fetchData();
+    }, [debouncedSearch]);
+
+    const handleSearch = async (e) => {
+        setSearchText(e.target.value);
+
     }
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchText);
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [searchText]);
+
+
     return (
         <>
             <div className='navbar'>
