@@ -9,6 +9,7 @@ const reviewSchema = new mongoose.Schema({
 
 const productschema = new mongoose.Schema({
     proImg: { type: String, required: true },
+      proImgPublicId: { type: String, required: true },
     proName: { type: String, required: true },
     proPrice: { type: Number, required: true },
     proColor:{type: String,required: true},

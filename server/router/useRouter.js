@@ -1,17 +1,8 @@
 import express from "express";
 import { addToCart, decQty, deleteCart, getCart, incQty, login, logout, register } from "../controler/userControler.js";
 import { addProduct, deleteProduct, filter, pagination, product, products, reviewsubmit, Search, updateProduct, uploadImage } from "../controler/productControler.js";
-import multer from "multer";
+import upload from "../controler/cloudinary.js";
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
-const upload = multer({ storage });
 
 
 const router = express.Router();
@@ -26,13 +17,22 @@ router.post('/home/deletecartitem/:userId', deleteCart)
 router.post('/incQty/:userId', incQty)
 router.post('/decQty/:userId', decQty)
 router.post('/delete/:id', deleteProduct)
-router.post('/update/:id', updateProduct)
+router.post('/update/:id', upload.single('image'), updateProduct);
 router.get('/product/:id', product)
 router.post('/search', Search)
 router.post('/reveiw/:productId/:userId', reviewsubmit);
 router.post('/home/page', pagination);
 router.post('/home/filter', filter);
-router.post('/upload', upload.single('image'), uploadImage);
+router.post('/upload', (req, res, next) => {
+    upload.single('image')(req, res, function (err) {
+        if (err) {
+            console.error("Multer error:", err);
+            return res.status(400).json({ success: false, message: "Multer error", error: err.message });
+        }
+        next();
+    });
+}, uploadImage);
 
+console.log(upload.single('image'))
 
 export default router;

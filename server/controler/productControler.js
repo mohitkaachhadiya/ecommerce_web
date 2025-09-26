@@ -1,7 +1,7 @@
 import productmodel from "../models/productsModel.js";
 import usermodel from "../models/userModel.js";
-import fs from 'fs';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+
 
 export const products = async (req, resp) => {
     try {
@@ -14,7 +14,7 @@ export const products = async (req, resp) => {
 
 export const addProduct = async (req, resp) => {
 
-    const { proName, proImg, proPrice, proColor } = req.body;
+    const { proName, proImg, proImgPublicId, proPrice, proColor } = req.body;
 
     if (!proImg || !proName || !proPrice || !proColor) {
         return resp.json({ success: false, message: "All fields are required" });
@@ -23,6 +23,7 @@ export const addProduct = async (req, resp) => {
         const product = new productmodel({
             proImg,
             proName,
+            proImgPublicId,
             proPrice,
             proColor
         });
@@ -34,29 +35,15 @@ export const addProduct = async (req, resp) => {
 };
 
 export const deleteProduct = async (req, resp) => {
-
     const { id } = req.params;
     try {
         const product = await productmodel.findById(id);
         if (!product) {
             return resp.json({ success: false, message: 'Product not found' });
         }
-        let imagePath = null;
-        if (product.proImg) {
-            if (product.proImg.startsWith('http')) {
+        if (product.proImgPublicId) {
+            await cloudinary.uploader.destroy(product.proImgPublicId);
 
-                const url = new URL(product.proImg);
-                const imageName = path.basename(url.pathname);
-                imagePath = path.join(process.cwd(), imageName);
-            } else {
-
-                imagePath = path.join(process.cwd(), product.proImg);
-            }
-
-            if (fs.existsSync(imagePath)) {
-                fs.unlinkSync(imagePath);
-            } else {
-            }
         }
         const deletedProduct = await productmodel.findByIdAndDelete(id);
         if (!deletedProduct) {
@@ -70,45 +57,27 @@ export const deleteProduct = async (req, resp) => {
 
 export const updateProduct = async (req, resp) => {
     const { id } = req.params;
-    const { proName, proImg, proPrice, proColor } = req.body;
-    if (!proName || !proImg || !proPrice) {
-        return resp.json({ success: false, message: "All fields are required" });
-    }
+    const { proName, proPrice, proColor, proImg, proImgPublicId } = req.body;
 
+    if (!proName || !proPrice) {
+        return resp.json({ success: false, message: "Name and Price are required" });
+    }
     try {
         const existingProduct = await productmodel.findById(id);
         if (!existingProduct) {
             return resp.json({ success: false, message: "Product not found" });
         }
-
-        if (
-            existingProduct.proImg &&
-            existingProduct.proImg !== proImg &&
-            !existingProduct.proImg.startsWith('http')
-        ) {
-            const oldImageName = path.basename(existingProduct.proImg);
-            const oldImagePath = path.join(process.cwd(),'uploads' ,oldImageName);
-            console.log(oldImagePath)
-            if (fs.existsSync(oldImagePath)) {
-                fs.unlinkSync(oldImagePath);
-                console.log(`🗑️ Deleted old image: ${oldImagePath}`);
-            }
+        if (proImgPublicId && proImgPublicId !== existingProduct.proImgPublicId) {
+            await cloudinary.uploader.destroy(existingProduct.proImgPublicId);
+            existingProduct.proImgPublicId = proImgPublicId;
+            existingProduct.proImg = proImg; // Update image URL as well
         }
-
-        const updatedProduct = await productmodel.findByIdAndUpdate(
-            id,
-            {
-                proName,
-                proImg,
-                proPrice,
-                proColor
-            },
-            { new: true }
-        );
-        if (!updatedProduct) {
-            return resp.json({ success: false, message: "Product not found" });
-        }
-        return resp.json({ success: true, product: updatedProduct });
+      
+        existingProduct.proName = proName;
+        existingProduct.proPrice = proPrice;
+        existingProduct.proColor = proColor;
+        await existingProduct.save();
+        return resp.json({ success: true, product: existingProduct });
     } catch (error) {
         return resp.json({ success: false, message: error.message });
     }
@@ -212,17 +181,32 @@ export const filter = async (req, resp) => {
 }
 
 
-export const uploadImage = (req, resp) => {
-    const file = req.body
-    if (!file) {
-        return resp.json({ error: "No file uploaded" });
-    }
+export const uploadImage = async (req, res) => {
+    try {
 
-    const imageUrl = `/uploads/${req.file.filename}`;
-    resp.json({
-        message: "Image uploaded ",
-        imageUrl,
-    });
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "No file uploaded" });
+        }
+
+        const imageUrl = req.file.path;
+        const publicId = `${req.file.filename}`;
+
+        return res.status(200).json({
+            success: true,
+            message: "Image uploaded successfully",
+            imageUrl,
+            publicId
+        });
+
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Image upload failed",
+        });
+    }
 };
+
+
 
 

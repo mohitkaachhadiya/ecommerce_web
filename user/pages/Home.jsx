@@ -223,7 +223,7 @@ export const Home = () => {
                     paginatedSearchData.map((data, index) => (
                         <div className='product' key={index}>
                             <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/product/${data._id}`)} >
-                                <img className='img' src={`https://ecommerce-web-e9sm.onrender.com${data.proImg}`} alt={data.proName} />
+                                <img className='img' src={data.proImg} alt={data.proName} />
                                 <p>{data.proName}</p>
                                 <p>${data.proPrice}</p>
 
@@ -248,7 +248,7 @@ export const Home = () => {
                             
                             <div className='product' key={index}>
                                 <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/product/${product._id}`)} >
-                                    <img className='img' src={`https://ecommerce-web-e9sm.onrender.com${product.proImg}`} alt={product.proName} />
+                                    <img className='img' src={`${product.proImg}`} alt={product.proName} />
                                     <p>{product.proName}</p>
                                     {console.log(product.proImg)}
                                     <p>${product.proPrice}</p>
