@@ -250,7 +250,7 @@ export const Home = () => {
                                 <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/product/${product._id}`)} >
                                     <img className='img' src={`${product.proImg}`} alt={product.proName} />
                                     <p>{product.proName}</p>
-                                    {console.log(product.proImg)}
+                                   
                                     <p>${product.proPrice}</p>
                                 </div>
                                 <button onClick={async () => {
