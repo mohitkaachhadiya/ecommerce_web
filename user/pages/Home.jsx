@@ -1,300 +1,226 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
-import Navbar from '../componets/Navbar'
-import axios from 'axios'
-import { toast } from 'react-toastify'
-import { Appcontex } from '../context/Appcontext'
-import { useNavigate } from 'react-router-dom'
-import About from '../componets/about'
-import Contact from '../componets/Contact';
-import UsePagination from '../componets/usePagination';
-import FilterAltSharpIcon from '@mui/icons-material/FilterAltSharp';
-import ClearSharpIcon from '@mui/icons-material/ClearSharp';
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import FilterAltSharpIcon from "@mui/icons-material/FilterAltSharp";
+import Navbar from "../componets/Navbar";
+import About from "../componets/about";
+import Contact from "../componets/Contact";
+import UsePagination from "../componets/usePagination";
+import { Appcontex } from "../context/Appcontext";
+import Loader from "../components/common/Loader";
+import ProductCard from "../components/product/ProductCard";
+import ProductFilterSidebar from "../components/product/ProductFilterSidebar";
+import { PAGE_SIZE_OPTIONS } from "../constants/appConfig";
+import { productService } from "../services/productService";
 
 export const Home = () => {
-    const aboutRef = useRef(null);
-    const contactRef = useRef(null);
-    const navigate = useNavigate();
-    const [showSidebar, setShowSidebar] = useState(false);
-    const [products, setProducts] = useState([]);
-    const [page, setpage] = useState(1);
-    const [limit, setlimit] = useState(8);
-    const [totalPages, setTotalPages] = useState(1);
-    const [selectedColors, setSelectedColors] = useState([]);
-    const [maxprice, setmaxprice] = useState(null);
-    const [minprice, setminprice] = useState(null);
-    const [isFiltering, setIsFiltering] = useState(false);
-    const { user, setuser, addToCart, Searchdata, searchText, getCart, addCart } = useContext(Appcontex)
+  const aboutRef = useRef(null);
+  const contactRef = useRef(null);
+  const navigate = useNavigate();
+  const { user, setuser, Searchdata, searchText, getCart, addCart } =
+    useContext(Appcontex);
 
-    const scrollToAbout = () => {
-        aboutRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-    
-    const scrollToContact = () => {
-        contactRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(8);
+  const [totalPages, setTotalPages] = useState(1);
+  const [selectedColors, setSelectedColors] = useState([]);
+  const [maxprice, setMaxprice] = useState("");
+  const [minprice, setMinprice] = useState("");
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (!user) {
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                setuser(JSON.parse(storedUser));
-            }
-            if (!user && !storedUser) {
-                navigate('/');
-            }
-        }
-    }, [user, setuser]);
+  const visibleProducts = useMemo(() => {
+    if (!Searchdata.length) return products;
+    return Searchdata.slice((page - 1) * limit, page * limit);
+  }, [Searchdata, limit, page, products]);
 
-    const handeleDelete = async (id) => {
-        try {
-            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/delete/${id}`);
-            if (data.success) {
-                toast.success(data.message);
-                await getproducts();
-            }
-            else {
-                toast.error(data.message);
-            }
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Delete failed");
-        }
+  const activeTotalPages = Searchdata.length
+    ? Math.ceil(Searchdata.length / limit)
+    : totalPages;
+
+  const getProducts = async () => {
+    setLoading(true);
+    try {
+      const { data } = await productService.getPage({ page, limit });
+      if (data.success) {
+        setProducts(data.products);
+        setTotalPages(data.totalPages);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const getproducts = async () => {
-        try {
-            const { data } = await axios.post("https://ecommerce-web-e9sm.onrender.com/home/page", { page, limit })
-            if (data.success) {
-                toast.success(data.message)
-                setProducts(data.products);
-                setTotalPages(data.totalPages);
-            }
-            else {
-                toast.error(data.message)
-            }
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Something went wrong");
-        }
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (!user && storedUser) {
+      setuser(JSON.parse(storedUser));
+      return;
     }
-   useEffect(() => {
-        getCart();
-    }, []);
+    if (!user && !storedUser) navigate("/");
+  }, [navigate, setuser, user]);
 
-    useEffect(() => {
-        getproducts();
-    }, [page, limit]);
+  useEffect(() => {
+    getProducts();
+  }, [page, limit]);
 
-    const paginatedSearchData = Searchdata.slice(
-        (page - 1) * limit,
-        page * limit
+  useEffect(() => {
+    getCart();
+  }, [user?._id]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [Searchdata]);
+
+  const handleDelete = async (id) => {
+    try {
+      const { data } = await productService.remove(id);
+      if (data.success) {
+        toast.success(data.message);
+        await getProducts();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message || "Delete failed");
+    }
+  };
+
+  const handleColorChange = (e) => {
+    const { value, checked } = e.target;
+    setSelectedColors((prev) =>
+      checked ? [...prev, value] : prev.filter((color) => color !== value)
     );
+  };
 
-    const totalSearchPages = Math.ceil(Searchdata.length / limit);
-    useEffect(() => {
-        setpage(1);
-    }, [Searchdata]);
+  const applyFilters = async () => {
+    setPage(1);
+    setIsFiltering(true);
+    try {
+      const { data } = await productService.filter({
+        colors: selectedColors,
+        minprice: minprice === "" ? undefined : Number(minprice),
+        maxprice: maxprice === "" ? undefined : Number(maxprice),
+      });
+      if (data.success) {
+        setProducts(data.products);
+        setShowSidebar(false);
+        toast.success("Filters applied");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to apply filters");
+    }
+  };
 
-    const handleColorChange = (e) => {
-        const { value, checked } = e.target;
-        setSelectedColors(prev =>
-            checked ? [...prev, value] : prev.filter(color => color !== value)
-        );
-    };
+  const clearFilters = () => {
+    setSelectedColors([]);
+    setMinprice("");
+    setMaxprice("");
+    setIsFiltering(false);
+    setPage(1);
+    getProducts();
+  };
 
+  return (
+    <>
+      <Navbar
+        scrollToAbout={() => aboutRef.current?.scrollIntoView({ behavior: "smooth" })}
+        scrollToContact={() => contactRef.current?.scrollIntoView({ behavior: "smooth" })}
+      />
 
-    const applyFilters = async () => {
-        setpage(1);
-        setIsFiltering(true);
-        const min = (typeof minprice === 'number' && !isNaN(minprice)) ? minprice : undefined;
-        const max = (typeof maxprice === 'number' && !isNaN(maxprice)) ? maxprice : undefined;
-        try {
-            const { data } = await axios.post('https://ecommerce-web-e9sm.onrender.com/home/filter', {
-                colors: selectedColors,
-                minprice: min,
-                maxprice: max,
-            });
-            if (data.success) {
-                setProducts(data.products);
+      <ProductFilterSidebar
+        isOpen={showSidebar}
+        selectedColors={selectedColors}
+        minprice={minprice}
+        maxprice={maxprice}
+        onClose={() => setShowSidebar(false)}
+        onColorChange={handleColorChange}
+        onMinPriceChange={setMinprice}
+        onMaxPriceChange={setMaxprice}
+        onApply={applyFilters}
+      />
 
-                toast.success("Filters applied");
-                setShowSidebar(false);
-                setminprice('')
-                setmaxprice('')
-            } else {
-                toast.error(data.message);
-            }
-        } catch (error) {
-            toast.error("Failed to apply filters");
-        }
-    };
-    return (
-        <>
-            <Navbar scrollToAbout={scrollToAbout} scrollToContact={scrollToContact} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <FilterAltSharpIcon className="filter" onClick={() => setShowSidebar(true)} />
+        {isFiltering && (
+          <button
+            style={{
+              backgroundColor: "transparent",
+              border: "none",
+              color: "blue",
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+            onClick={clearFilters}
+          >
+            Clear Filters
+          </button>
+        )}
+      </div>
 
-            <div className={`sidebar ${showSidebar ? 'show' : ''}`}>
-                <div className="sidebar-content">
-                    <h2>Filter Options</h2>
-                    <ClearSharpIcon onClick={() => setShowSidebar(false)} />
-                    <div>
-                        <h4>Price Range ($)</h4>
-                        <input
-                            type="number"
-                            name="priceMin"
-                            value={minprice}
-                            placeholder="Min"
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                setminprice(val === "" ? undefined : Number(val));
-                            }}
+      <div className="home-body">
+        {loading ? (
+          <Loader />
+        ) : visibleProducts.length > 0 ? (
+          visibleProducts.map((product) => (
+            <ProductCard
+              key={product._id}
+              product={product}
+              isAdmin={user?.role === "admin"}
+              onOpen={(id) => navigate(`/product/${id}`)}
+              onAddToCart={async (id) => {
+                await addCart(id);
+                await getCart();
+              }}
+              onEdit={(id) => navigate(`/home/${id}`)}
+              onDelete={handleDelete}
+            />
+          ))
+        ) : searchText.trim() ? (
+          <p>No matching products found.</p>
+        ) : (
+          <p>No products found.</p>
+        )}
 
-                            style={{ width: '80px', marginRight: '10px' }}
-                        />
-                        <input
-                            type="number"
-                            name="priceMax"
-                            value={maxprice}
-                            placeholder="Max"
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                setmaxprice(val === "" ? undefined : Number(val));
-                            }}
-                            style={{ width: '80px' }}
-                        />
-                    </div>
-                    <div>
-                        <h4>Colors</h4>
-                        <label style={{ display: 'block', cursor: 'pointer' }}>
-                            <input checked={selectedColors.includes("black")} onChange={handleColorChange} type="checkbox" value="black" /> Black
-                        </label>
-                        <label style={{ display: 'block', cursor: 'pointer' }}>
-                            <input checked={selectedColors.includes("white")} onChange={handleColorChange} type="checkbox" value="white" /> White
-                        </label>
-                        <label style={{ display: 'block', cursor: 'pointer' }}>
-                            <input checked={selectedColors.includes("red")} onChange={handleColorChange} type="checkbox" value="red" /> Red
-                        </label>
-                        <label style={{ display: 'block', cursor: 'pointer' }}>
-                            <input checked={selectedColors.includes("blue")} onChange={handleColorChange} type="checkbox" value="blue" /> Blue
-                        </label>
-                        <label style={{ display: 'block', cursor: 'pointer' }}>
-                            <input checked={selectedColors.includes("mix")} onChange={handleColorChange} type="checkbox" value="mix" /> Multi-color
-                        </label>
-                    </div>
-                    <div>
-                        <h4>Material</h4>
-                        <label style={{ display: 'block', cursor: 'pointer' }}>
-                            <input type="checkbox" value="Canvas" /> Canvas
-                        </label>
-                        <label style={{ display: 'block', cursor: 'pointer' }}>
-                            <input type="checkbox" value="Leather" /> Leather
-                        </label>
-                        <label style={{ display: 'block', cursor: 'pointer' }}>
-                            <input type="checkbox" value="Cotton" /> Cotton
-                        </label>
-                        <label style={{ display: 'block', cursor: 'pointer' }}>
-                            <input type="checkbox" value="Jute" /> Jute
-                        </label>
-                        <label style={{ display: 'block', cursor: 'pointer' }}>
-                            <input type="checkbox" value="Synthetic" /> Synthetic
-                        </label>
-                    </div>
-                    <button
-                        style={{ marginTop: '20px', padding: '8px 12px', cursor: 'pointer' }}
-                        onClick={() => applyFilters()}
-                    >
-                        Apply Filters
-                    </button>
-                </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <FilterAltSharpIcon className='filter' onClick={() => setShowSidebar(true)} />
-                {isFiltering && (<button
-                    style={{ backgroundColor: 'transparent', border: 'none', color: 'blue', textDecoration: 'undeline', cursor: 'pointer' }}
-                    onClick={() => {
-                        setSelectedColors([]);
-                        setIsFiltering(false);
-                        setpage(1);
-                        getproducts();
-                    }}
+        {!isFiltering && (
+          <div className="pagination">
+            <UsePagination totalPages={activeTotalPages} currentPage={page} setPage={setPage} />
+            {!Searchdata.length && (
+              <div>
+                <select
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="per-page-dropdown"
+                  value={limit}
                 >
-                    Clear Filters
-                </button>)}
-            </div>
-            <div className='home-body'>
-                {Searchdata.length > 0 ? (
-                    paginatedSearchData.map((data, index) => (
-                        <div className='product' key={index}>
-                            <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/product/${data._id}`)} >
-                                <img className='img' src={data.proImg} alt={data.proName} />
-                                <p>{data.proName}</p>
-                                <p>${data.proPrice}</p>
+                  {PAGE_SIZE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
-                            </div>
-
-                            <button onClick={() => addToCart(data, 1)} >Add to Cart</button>
-                            {user?.role === 'admin' && (
-                                <>
-                                    <button onClick={() => navigate(`/home/${data._id}`)} >Edit</button>
-                                    <button onClick={() => handeleDelete(data._id)}>Delete</button>
-                                </>
-                            )}
-                        </div>
-
-                    ))
-                ) : (
-
-                    Searchdata.length === 0 && searchText.trim() !== "" ? (
-                        <p>No matching products found.</p>
-                    ) : (
-                        products.map((product, index) => (
-                            
-                            <div className='product' key={index}>
-                                <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/product/${product._id}`)} >
-                                    <img className='img' src={`${product.proImg}`} alt={product.proName} />
-                                    <p>{product.proName}</p>
-                                   
-                                    <p>${product.proPrice}</p>
-                                </div>
-                                <button onClick={async () => {
-                                    await addCart(product._id);
-                                    await getCart();
-                                }} >Add to Cart</button>
-                                {user?.role === 'admin' && (
-                                    <>
-                                        <button onClick={() => navigate(`/home/${product._id}`)} >Edit</button>
-                                        <button onClick={() => handeleDelete(product._id)}>Delete</button>
-                                    </>
-                                )}
-                            </div>
-                        ))
-                    )
-                )}
-                {!isFiltering && (
-                    <div className="pagination">
-                        {Searchdata.length > 0 && searchText.trim() !== "" ? (
-                            <UsePagination totalPages={totalSearchPages} currentPage={page} setPage={setpage} />
-                        ) : (
-                            <>
-                                <UsePagination totalPages={totalPages} currentPage={page} setPage={setpage} />
-                                <div>
-                                    <select onChange={(e) => setlimit(Number(e.target.value), setpage(1))} className="per-page-dropdown" defaultValue="">
-                                        <option value="" disabled hidden>per page</option>
-                                        <option value="8">8</option>
-                                        <option value="12">12</option>
-                                        <option value="16">16</option>
-                                        <option value="20">20</option>
-                                    </select>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                )}
-
-            </div>
-            <div ref={aboutRef}>
-                <About />
-            </div>
-            <div ref={contactRef}>
-                <Contact />
-            </div>
-        </>
-    )
-}
+      <div ref={aboutRef}>
+        <About />
+      </div>
+      <div ref={contactRef}>
+        <Contact />
+      </div>
+    </>
+  );
+};

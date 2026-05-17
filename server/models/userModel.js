@@ -14,17 +14,12 @@ const userCart = new mongoose.Schema({
     }
 });
 
-
-
-
 const userschema = new mongoose.Schema({
     name: { type: String, require: true },
     email: { type: String, require: true, unique: true },
     password: { type: String, require: true },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     cart: [userCart]
-
-
 })
 
 const usermodel = mongoose.model('users', userschema)

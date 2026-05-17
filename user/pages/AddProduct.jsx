@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { assets } from '../src/assets/assets';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import { productService } from '../services/productService';
 
 const AddProduct = () => {
     const navigate = useNavigate()
@@ -28,14 +28,14 @@ const AddProduct = () => {
 
     const getProductDetails = async () => {
         try {
-            const { data } = await axios.get(`https://ecommerce-web-e9sm.onrender.com/product/${id}`);
+            const { data } = await productService.getById(id);
             if (data.success) {
                 setProduct(data.product);
             } else {
                 toast.error(data.message);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Error loading product");
+            toast.error(error.message || "Error loading product");
         }
     };
 
@@ -57,13 +57,7 @@ const AddProduct = () => {
         formData.append('image', file);
 
         try {
-            const { data } = await axios.post(
-                'https://ecommerce-web-e9sm.onrender.com/upload',
-                formData,
-                {
-                    withCredentials: true,
-                }
-            );
+            const { data } = await productService.uploadImage(formData);
 
 
             if (data.imageUrl) {
@@ -74,7 +68,7 @@ const AddProduct = () => {
                 toast.error('Image upload failed');
             }
         } catch (error) {
-            toast.error('Image upload failed');
+            toast.error(error.message || 'Image upload failed');
         }
     };
 
@@ -85,10 +79,9 @@ const AddProduct = () => {
             toast.error('Please upload an image first');
             return;
         }
-        axios.defaults.withCredentials = true
         try {
             if (state === "add") {
-                const { data } = await axios.post('https://ecommerce-web-e9sm.onrender.com/add', { proImg, proName, proImgPublicId, proPrice, proColor })
+                const { data } = await productService.create({ proImg, proName, proImgPublicId, proPrice, proColor })
 
                 if (data.success) {
                     toast.success(data.message)
@@ -105,7 +98,7 @@ const AddProduct = () => {
             }
             else {
 
-                const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/update/${id}`, { proImg, proName, proImgPublicId, proPrice, proColor });
+                const { data } = await productService.update(id, { proImg, proName, proImgPublicId, proPrice, proColor });
                 if (data.success) {
                     setProduct(data.product);
                     setproImg(data.product.proImg);
@@ -121,7 +114,7 @@ const AddProduct = () => {
                 }
             }
         } catch (error) {
-            toast.error(data.message || "Something went wrong");
+            toast.error(error.message || "Something went wrong");
         }
     }
 

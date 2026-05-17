@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import StarRating from '../componets/Starrating';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import { productService } from '../services/productService';
 
 
 const Reveiws = () => {
@@ -16,7 +16,7 @@ const Reveiws = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post(`https://ecommerce-web-e9sm.onrender.com/reveiw/${productId}/${userId}`, {
+            const response = await productService.submitReview(productId, userId, {
                 selectedRating,
                 reviewText,
                 interestingText
@@ -30,7 +30,7 @@ const Reveiws = () => {
             }
         } catch (error) {
             console.error(error);
-            toast.error(" Failed to submit review.");
+            toast.error(error.message || "Failed to submit review.");
         }
 
     };

@@ -1,40 +1,32 @@
-import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import dbConection from './database/dbConection.js'
-import router from "./router/useRouter.js";
-import path, { dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-
-dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
+import connectDb from "./config/db.js";
+import { corsOptions } from "./config/cors.js";
+import { env } from "./config/env.js";
+import router from "./routes/index.js";
+import { errorHandler, notFound } from "./middleware/errorHandler.js";
 
 const app = express();
+
 app.use(express.json());
-app.use(cookieParser())
-const allowedOrigins = [
-    "https://ecommerce-web-e9sm.onrender.com", // backend itself (if you test APIs directly)
-    "https://ecommerce-web-15lx-git-main-mohits-projects-591f65b7.vercel.app", // frontend on vercel
-    "http://localhost:5173"
-];
+app.use(cookieParser());
+app.use(cors(corsOptions));
 
-app.use(cors({ origin: allowedOrigins, credentials: true }))
-
+app.get("/", (req, res) => res.send("server is running"));
 app.get("/test", (req, res) => res.send("Server is working"));
 
+app.use(router);
+app.use(notFound);
+app.use(errorHandler);
 
-const port = process.env.PORT;
-console.log(process.env.PORT)
-dbConection();
-
-app.get("/", (req, resp) => {
-    resp.send("server is running")
-})
-
-app.use(router)
-app.listen(port)
+connectDb()
+  .then(() => {
+    app.listen(env.port, () => {
+      console.log(`server is running on port ${env.port}`);
+    });
+  })
+  .catch((error) => {
+    console.error("server startup failed", error.message);
+    process.exit(1);
+  });

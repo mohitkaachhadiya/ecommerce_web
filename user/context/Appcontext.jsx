@@ -1,7 +1,8 @@
 
 import { createContext, useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
+import { cartService } from "../services/cartService";
+import { normalizeCartItems } from "../utils/cart";
 
 
 export const Appcontex = createContext()
@@ -35,9 +36,9 @@ export const Appcontexprovider = (props) => {
     }
 
     const addCart = async (pid) => {
-        const id = user._id
+        if (!user?._id) return toast.error("Please login first");
         try {
-            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/home/addtocart/${id}`, { productId: pid })
+            const { data } = await cartService.addItem(user._id, { productId: pid })
             if (data.success) {
                 openCart();
                 toast.success(data.message);
@@ -51,20 +52,11 @@ export const Appcontexprovider = (props) => {
     }
 
     const getCart = async () => {
-        const id = user._id
+        if (!user?._id) return;
         try {
-            const { data } = await axios.get(`https://ecommerce-web-e9sm.onrender.com/home/getcart/${id}`)
+            const { data } = await cartService.getItems(user._id)
             if (data.success) {
-                toast.success(data.message);
-                data.cart.forEach(item => {
-                });
-
-                const normalizedCart = data.cart.map(item => ({
-                    ...item.product,
-                    qty: item.quantity,
-                    _id: item._id
-                }));
-                setCartItems(normalizedCart)
+                setCartItems(normalizeCartItems(data.cart))
                
             }
             else {
@@ -88,6 +80,7 @@ export const Appcontexprovider = (props) => {
         loading,
         isCartOpen,
         openCart,
+        addToCart: addCart,
         addCart,
         closeCart,
         cartItems,

@@ -3,18 +3,19 @@ import LocalMallSharpIcon from '@mui/icons-material/LocalMallSharp';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import { Appcontex } from '../context/Appcontext';
-import axios from 'axios';
 import { useEffect } from 'react';
+import { authService } from '../services/authService';
+import { productService } from '../services/productService';
 
 
-const Navbar = ({ scrollToAbout, scrollToContact }) => {
+const Navbar = ({ scrollToAbout, scrollToContact}) => {
     const navigate = useNavigate();
-    const { user, setuser, openCart, cartItems, setSearchdata, setSearchText, searchText,Searchdata } = useContext(Appcontex)
+    const { user, setuser, openCart, cartItems, setSearchdata, setSearchText, searchText } = useContext(Appcontex)
     const [debouncedSearch, setDebouncedSearch] = useState('');
 
 
     const handleLogout = async () => {
-        const log = await axios.post('https://ecommerce-web-e9sm.onrender.com/logout')
+        await authService.logout()
         setuser(null);
         localStorage.removeItem('user');
         navigate('/')
@@ -26,10 +27,10 @@ const Navbar = ({ scrollToAbout, scrollToContact }) => {
         }
         const fetchData = async () => {
             try {
-                const response = await axios.post('https://ecommerce-web-e9sm.onrender.com/search', { Searchvalue: debouncedSearch });
-                console.log('API called with:', debouncedSearch);
+                const response = await productService.search(debouncedSearch);
                 setSearchdata(response.data.products);
             } catch (error) {
+                setSearchdata([]);
             }
         };
 

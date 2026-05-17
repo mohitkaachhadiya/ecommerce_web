@@ -1,12 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import Navbar from '../componets/Navbar';
 import { Appcontex } from '../context/Appcontext';
 import Contact from '../componets/Contact';
 import StarRating from '../componets/Starrating';
 import { useNavigate } from 'react-router-dom';
+import { productService } from '../services/productService';
+import { cartService } from '../services/cartService';
 
 const ProductDetails = () => {
     const navigate = useNavigate()
@@ -24,14 +25,14 @@ const ProductDetails = () => {
 
     const getProductDetails = async () => {
         try {
-            const { data } = await axios.get(`https://ecommerce-web-e9sm.onrender.com/product/${id}`);
+            const { data } = await productService.getById(id);
             if (data.success) {
                 setProduct(data.product);
             } else {
                 toast.error(data.message);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Error loading product");
+            toast.error(error.message || "Error loading product");
         }
     };
     
@@ -44,10 +45,10 @@ const ProductDetails = () => {
     }, [id]);
 
     const addtocart = async (productId) => {
-        const id = user._id
+        if (!user?._id) return toast.error("Please login first");
      
         try {
-            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/home/addtocart/${id}`, { productId, quantity:count})
+            const { data } = await cartService.addItem(user._id, { productId, quantity:count})
             if (data.success) {
                 toast.success(data.message);
                 openCart();
@@ -58,7 +59,7 @@ const ProductDetails = () => {
                 toast.error(data.message);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message );
+            toast.error(error.message || "Something went wrong");
         }
     };
 
@@ -71,7 +72,7 @@ const ProductDetails = () => {
             <Navbar />
             <div className='product-details'>
                 <div>
-                    <img className='pro-img' src={`https://ecommerce-web-e9sm.onrender.com${product.proImg}`} alt={product.proName} />
+                    <img className='pro-img' src={`${product.proImg}`} alt={product.proName} />
                 </div>
                 <div className='detail'>
                     <h2 className='product-info'>{product.proName}</h2>

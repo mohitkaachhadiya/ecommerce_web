@@ -2,16 +2,17 @@ import React, { useContext, useState } from 'react';
 import { Appcontex } from '../context/Appcontext';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import { cartService } from '../services/cartService';
+import { getCartTotal } from '../utils/cart';
 const Cart = () => {
 
     const { isCartOpen, closeCart, cartItems, setCartItems, user, getCart } = useContext(Appcontex)
 
     const incrQty = async (cid) => {
-        const id = user._id
+        if (!user?._id) return;
         try {
-            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/incQty/${id}`, { cartItemId: cid })
+            const { data } = await cartService.increaseQuantity(user._id, cid)
             if (data.success) {
                 toast.success(data.message);
                 getCart();
@@ -21,15 +22,15 @@ const Cart = () => {
                 toast.error(data.message);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Something went wrong");
+            toast.error(error.message || "Something went wrong");
         }
 
     };
 
     const decrQty = async (cid) => {
-        const id = user._id
+        if (!user?._id) return;
         try {
-            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/decQty/${id}`, { cartItemId: cid })
+            const { data } = await cartService.decreaseQuantity(user._id, cid)
             if (data.success) {
                 toast.success(data.message);
                 getCart();
@@ -39,18 +40,15 @@ const Cart = () => {
                 toast.error(data.message);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Something went wrong");
+            toast.error(error.message || "Something went wrong");
         }
     };
-    const cartTotal = cartItems.reduce((total, item) => {
-        const qty = item.qty || 1;
-        return total + item.proPrice * qty;
-    }, 0);
+    const cartTotal = getCartTotal(cartItems);
 
     const deleteCartItem = async (pid) => {
-        const id = user._id
+        if (!user?._id) return;
         try {
-            const { data } = await axios.post(`https://ecommerce-web-e9sm.onrender.com/home/deletecartitem/${id}`, { cartItemId: pid })
+            const { data } = await cartService.removeItem(user._id, pid)
             if (data.success) {
                 toast.success(data.message);
                 getCart();
@@ -59,7 +57,7 @@ const Cart = () => {
                 toast.error(data.message);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Something went wrong");
+            toast.error(error.message || "Something went wrong");
         }
     }
 

@@ -1,9 +1,10 @@
 import React, { useContext, useState } from 'react'
 import { assets } from '../src/assets/assets'
-import axios from 'axios'
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { Appcontex } from '../context/Appcontext';
+import { authService } from '../services/authService';
+import { isStrongPassword } from '../utils/passwordValidation';
 
 export const Login = () => {
     const navigate = useNavigate();
@@ -11,32 +12,17 @@ export const Login = () => {
     const [name, setname] = useState('')
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { user, setuser } = useContext(Appcontex) 
-    const validate = (password) => {
-        const minLength = /.{8,}/;
-        const upperCase = /[A-Z]/;
-        const lowerCase = /[a-z]/;
-        const digit = /[0-9]/;
-        const specialChar = /[!@#$%^&*(),.?":{}|<>]/;
-        return (
-            minLength.test(password) &&
-            upperCase.test(password) &&
-            lowerCase.test(password) &&
-            digit.test(password) &&
-            specialChar.test(password)
-        );
-    }
+    const { setuser } = useContext(Appcontex) 
 
     const handaleSubmi = async (e) => {
         try {
             e.preventDefault();
-            axios.defaults.withCredentials = true
-            if (!validate(password)) {
+            if (!isStrongPassword(password)) {
                 toast.error("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
                 return;
             }
             if (state === "signup") {
-                const { data } = await axios.post('https://ecommerce-web-e9sm.onrender.com/register', { name, email, password })
+                const { data } = await authService.register({ name, email, password })
                 if (data.success) {
                     toast.success(data.message)
                     setname('')
@@ -48,7 +34,7 @@ export const Login = () => {
                 }
             }
             else {
-                const { data } = await axios.post('https://ecommerce-web-e9sm.onrender.com/login', { email, password });
+                const { data } = await authService.login({ email, password });
                 if (data.success) {
                     toast.success(data.message);
                     const user = data.user;
@@ -60,7 +46,7 @@ export const Login = () => {
                 }
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Something went wrong");
+            toast.error(error.message || "Something went wrong");
         }
     }
     return (
